@@ -1,25 +1,47 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
+	"github.com/rara-ch/wardrobie/internal/database"
 )
+
+type state struct {
+	db *database.Queries
+}
 
 func main() {
 	fmt.Println("Wardrobie begins here")
 
+	fmt.Println("Loading .env file")
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatalf("could not load environment variables: %s", err)
+	}
+
+	fmt.Println("Connecting to database")
+	dbURL := os.Getenv("DB_URL")
+	db, err := sql.Open("postgres", dbURL)
+	if err != nil {
+		log.Fatalf("could not connect to database: %s", err)
+	}
+	dbQueries := database.New(db)
+
+	state := &state{
+		db: dbQueries,
+	}
+
 	fmt.Println("Building commands")
 	commands := commands{}
-	commands.AddCommand("command1", "first test command", func() error {
-		fmt.Println("first command run")
-		return nil
-	})
-	commands.AddCommand("command2", "second test command", func() error {
-		fmt.Println("second command run")
-		return nil
+	commands.addCommand(command{
+		name:        "add",
+		description: "",
+		handler:     addHandler,
 	})
 
 	args := os.Args[1:]
@@ -27,7 +49,11 @@ func main() {
 		log.Fatalln("no command given")
 	} else {
 		if command, ok := commands[args[0]]; ok {
-			command.handler()
+			fmt.Println("Running command")
+			err := command.handler(state, args[1:])
+			if err != nil {
+				log.Fatalf("error when running command %s: %s", args[0], err)
+			}
 		} else {
 			log.Fatalf("command does not exist")
 		}

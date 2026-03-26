@@ -7,6 +7,7 @@ package database
 
 import (
 	"context"
+	"database/sql"
 )
 
 const createItem = `-- name: CreateItem :one
@@ -22,7 +23,7 @@ RETURNING id, created_at, updated_at, color, type
 `
 
 type CreateItemParams struct {
-	Color string
+	Color sql.NullString
 	Type  string
 }
 
