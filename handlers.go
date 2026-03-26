@@ -1,16 +1,16 @@
 package main
 
-type Handler func() error
+type handler func() error
 
 type command struct {
 	name        string
 	description string
-	handler     Handler
+	handler     handler
 }
 
-type Commands map[string]command
+type commands map[string]command
 
-func (commands Commands) AddCommand(name, desciption string, handler Handler) {
+func (commands commands) AddCommand(name, desciption string, handler handler) {
 	command := command{
 		name:        name,
 		description: desciption,
