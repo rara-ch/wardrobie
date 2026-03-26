@@ -12,7 +12,7 @@ func main() {
 	fmt.Println("Wardrobie begins here")
 
 	fmt.Println("Building commands")
-	commands := Commands{}
+	commands := commands{}
 	commands.AddCommand("command1", "first test command", func() error {
 		fmt.Println("first command run")
 		return nil
