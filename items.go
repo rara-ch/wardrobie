@@ -42,6 +42,10 @@ func addHandler(s *state, args []string) error {
 }
 
 func parseItem(args []string) (item, error) {
+	if len(args) == 0 {
+		return item{}, errors.New("there was no argument passed after command")
+	}
+
 	if string(args[0][0]) == "-" {
 		return item{}, errors.New("a flag should not come directly after command")
 	}
