@@ -66,6 +66,28 @@ func (q *Queries) DeleteItems(ctx context.Context) error {
 	return err
 }
 
+const getItemByID = `-- name: GetItemByID :one
+SELECT id, created_at, updated_at, color, type, brand, material, category
+FROM items
+WHERE id = $1
+`
+
+func (q *Queries) GetItemByID(ctx context.Context, id uuid.UUID) (Item, error) {
+	row := q.db.QueryRowContext(ctx, getItemByID, id)
+	var i Item
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Color,
+		&i.Type,
+		&i.Brand,
+		&i.Material,
+		&i.Category,
+	)
+	return i, err
+}
+
 const getItems = `-- name: GetItems :many
 SELECT id, created_at, updated_at, color, type, brand, material, category FROM items
 `
@@ -102,14 +124,37 @@ func (q *Queries) GetItems(ctx context.Context) ([]Item, error) {
 	return items, nil
 }
 
-const getItemsByID = `-- name: GetItemsByID :one
-SELECT id, created_at, updated_at, color, type, brand, material, category
-FROM items
+const updateItem = `-- name: UpdateItem :one
+UPDATE items
+SET
+    updated_at = now(),
+    type = COALESCE($2, type),
+    color = COALESCE($3, color),
+    brand = COALESCE($4, brand),
+    material = COALESCE($5, material),
+    category = COALESCE($6, category)
 WHERE id = $1
+RETURNING id, created_at, updated_at, color, type, brand, material, category
 `
 
-func (q *Queries) GetItemsByID(ctx context.Context, id uuid.UUID) (Item, error) {
-	row := q.db.QueryRowContext(ctx, getItemsByID, id)
+type UpdateItemParams struct {
+	ID       uuid.UUID
+	Type     string
+	Color    sql.NullString
+	Brand    sql.NullString
+	Material sql.NullString
+	Category sql.NullString
+}
+
+func (q *Queries) UpdateItem(ctx context.Context, arg UpdateItemParams) (Item, error) {
+	row := q.db.QueryRowContext(ctx, updateItem,
+		arg.ID,
+		arg.Type,
+		arg.Color,
+		arg.Brand,
+		arg.Material,
+		arg.Category,
+	)
 	var i Item
 	err := row.Scan(
 		&i.ID,

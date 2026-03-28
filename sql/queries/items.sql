@@ -20,5 +20,17 @@ SELECT *
 FROM items
 WHERE id = $1;
 
+-- name: UpdateItem :one
+UPDATE items
+SET
+    updated_at = now(),
+    type = COALESCE($2, type),
+    color = COALESCE($3, color),
+    brand = COALESCE($4, brand),
+    material = COALESCE($5, material),
+    category = COALESCE($6, category)
+WHERE id = $1
+RETURNING *;
+
 -- name: DeleteItems :exec
 DELETE FROM items;
