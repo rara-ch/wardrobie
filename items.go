@@ -18,29 +18,6 @@ type item struct {
 	material sql.NullString
 }
 
-func addHandler(s *state, args []string) error {
-	parsedItem, err := parseItem(args)
-	if err != nil {
-		return err
-	}
-
-	createdItem, err := s.db.CreateItem(context.Background(), database.CreateItemParams{
-		Type:     parsedItem.name,
-		Color:    parsedItem.color,
-		Brand:    parsedItem.brand,
-		Material: parsedItem.material,
-		Category: parsedItem.category,
-	})
-	if err != nil {
-		return fmt.Errorf("could not insert item into database: %s", err)
-	}
-
-	fmt.Println("===========================================================================")
-	fmt.Println("Item Inserted Successfully")
-	printDatabaseItem(createdItem)
-	return nil
-}
-
 func parseItem(args []string) (item, error) {
 	if len(args) == 0 {
 		return item{}, errors.New("there was no argument passed after command")
@@ -71,8 +48,50 @@ func parseItem(args []string) (item, error) {
 	}, nil
 }
 
+func addHandler(s *state, args []string) error {
+	parsedItem, err := parseItem(args)
+	if err != nil {
+		return err
+	}
+
+	createdItem, err := s.db.CreateItem(context.Background(), database.CreateItemParams{
+		Type:     parsedItem.name,
+		Color:    parsedItem.color,
+		Brand:    parsedItem.brand,
+		Material: parsedItem.material,
+		Category: parsedItem.category,
+	})
+	if err != nil {
+		return fmt.Errorf("could not insert item into database: %s", err)
+	}
+
+	fmt.Println("===========================================================================")
+	fmt.Println("Item Inserted Successfully")
+	printDatabaseItem(createdItem)
+	return nil
+}
+
+func getHandler(s *state, args []string) error {
+	items, err := s.db.ReadItems(context.Background())
+	if err != nil {
+		return fmt.Errorf("could not get items from database: %s", err)
+	}
+
+	if len(items) == 0 {
+		fmt.Println("There are no items")
+	}
+
+	for _, item := range items {
+		fmt.Println("===========================================================================")
+		printDatabaseItem(item)
+	}
+
+	return nil
+}
+
 func printDatabaseItem(item database.Item) {
-	fmt.Printf("Created At: %s\n", item.CreatedAt.Format("2006-01-02T15:04:05 -070000"))
+	fmt.Printf("Created At: %s\n", item.CreatedAt.Format("2006-01-02 15:04:05"))
+	fmt.Printf("Updated At: %s\n", item.CreatedAt.Format("2006-01-02 15:04:05"))
 	fmt.Printf("Type: %s\n", item.Type)
 	printNullString("Brand", item.Brand)
 	printNullString("Color", item.Color)

@@ -63,3 +63,39 @@ func (q *Queries) DeleteItems(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, deleteItems)
 	return err
 }
+
+const readItems = `-- name: ReadItems :many
+SELECT id, created_at, updated_at, color, type, brand, material, category FROM items
+`
+
+func (q *Queries) ReadItems(ctx context.Context) ([]Item, error) {
+	rows, err := q.db.QueryContext(ctx, readItems)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Item
+	for rows.Next() {
+		var i Item
+		if err := rows.Scan(
+			&i.ID,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.Color,
+			&i.Type,
+			&i.Brand,
+			&i.Material,
+			&i.Category,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}

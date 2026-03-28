@@ -12,5 +12,8 @@ VALUES (
 )
 RETURNING *;
 
+-- name: ReadItems :many
+SELECT * FROM items;
+
 -- name: DeleteItems :exec
 DELETE FROM items;

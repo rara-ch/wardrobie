@@ -29,5 +29,11 @@ func buildCommands() commands {
 		handler:     resetHandler,
 	})
 
+	commands.addCommand(command{
+		name:        "get",
+		description: "",
+		handler:     getHandler,
+	})
+
 	return commands
 }
