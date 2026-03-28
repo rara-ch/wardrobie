@@ -43,6 +43,11 @@ func main() {
 		description: "",
 		handler:     addHandler,
 	})
+	commands.addCommand(command{
+		name:        "reset",
+		description: "",
+		handler:     resetHandler,
+	})
 
 	args := os.Args[1:]
 	if len(args) < 1 {

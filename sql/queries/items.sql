@@ -8,3 +8,6 @@ VALUES (
     $2
 )
 RETURNING *;
+
+-- name: DeleteItems :exec
+DELETE FROM items;
