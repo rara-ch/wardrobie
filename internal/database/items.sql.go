@@ -11,24 +11,36 @@ import (
 )
 
 const createItem = `-- name: CreateItem :one
-INSERT INTO items (id, created_at, updated_at, color, type)
+INSERT INTO items (id, created_at, updated_at, type, color, brand, material, category)
 VALUES (
     gen_random_uuid(),
     now(),
     now(),
     $1,
-    $2
+    $2,
+    $3,
+    $4,
+    $5
 )
-RETURNING id, created_at, updated_at, color, type
+RETURNING id, created_at, updated_at, color, type, brand, material, category
 `
 
 type CreateItemParams struct {
-	Color sql.NullString
-	Type  string
+	Type     string
+	Color    sql.NullString
+	Brand    sql.NullString
+	Material sql.NullString
+	Category sql.NullString
 }
 
 func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (Item, error) {
-	row := q.db.QueryRowContext(ctx, createItem, arg.Color, arg.Type)
+	row := q.db.QueryRowContext(ctx, createItem,
+		arg.Type,
+		arg.Color,
+		arg.Brand,
+		arg.Material,
+		arg.Category,
+	)
 	var i Item
 	err := row.Scan(
 		&i.ID,
@@ -36,6 +48,9 @@ func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (Item, e
 		&i.UpdatedAt,
 		&i.Color,
 		&i.Type,
+		&i.Brand,
+		&i.Material,
+		&i.Category,
 	)
 	return i, err
 }

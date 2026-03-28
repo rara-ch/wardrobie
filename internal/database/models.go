@@ -17,4 +17,7 @@ type Item struct {
 	UpdatedAt time.Time
 	Color     sql.NullString
 	Type      string
+	Brand     sql.NullString
+	Material  sql.NullString
+	Category  sql.NullString
 }
