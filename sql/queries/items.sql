@@ -15,5 +15,10 @@ RETURNING *;
 -- name: ReadItems :many
 SELECT * FROM items;
 
+-- name: GetItemsByID :one
+SELECT *
+FROM items
+WHERE id = $1;
+
 -- name: DeleteItems :exec
 DELETE FROM items;

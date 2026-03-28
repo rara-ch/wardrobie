@@ -8,6 +8,8 @@ package database
 import (
 	"context"
 	"database/sql"
+
+	"github.com/google/uuid"
 )
 
 const createItem = `-- name: CreateItem :one
@@ -62,6 +64,28 @@ DELETE FROM items
 func (q *Queries) DeleteItems(ctx context.Context) error {
 	_, err := q.db.ExecContext(ctx, deleteItems)
 	return err
+}
+
+const getItemsByID = `-- name: GetItemsByID :one
+SELECT id, created_at, updated_at, color, type, brand, material, category
+FROM items
+WHERE id = $1
+`
+
+func (q *Queries) GetItemsByID(ctx context.Context, id uuid.UUID) (Item, error) {
+	row := q.db.QueryRowContext(ctx, getItemsByID, id)
+	var i Item
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Color,
+		&i.Type,
+		&i.Brand,
+		&i.Material,
+		&i.Category,
+	)
+	return i, err
 }
 
 const readItems = `-- name: ReadItems :many
