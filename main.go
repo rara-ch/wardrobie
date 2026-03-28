@@ -19,6 +19,7 @@ func main() {
 	fmt.Println("Wardrobie begins here")
 
 	fmt.Println("Loading .env file")
+
 	err := godotenv.Load()
 	if err != nil {
 		log.Fatalf("could not load environment variables: %s", err)
@@ -37,17 +38,7 @@ func main() {
 	}
 
 	fmt.Println("Building commands")
-	commands := commands{}
-	commands.addCommand(command{
-		name:        "add",
-		description: "",
-		handler:     addHandler,
-	})
-	commands.addCommand(command{
-		name:        "reset",
-		description: "",
-		handler:     resetHandler,
-	})
+	commands := buildCommands()
 
 	args := os.Args[1:]
 	if len(args) < 1 {

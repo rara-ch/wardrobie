@@ -13,3 +13,21 @@ type commands map[string]command
 func (commands commands) addCommand(command command) {
 	commands[command.name] = command
 }
+
+func buildCommands() commands {
+	commands := commands{}
+
+	commands.addCommand(command{
+		name:        "add",
+		description: "",
+		handler:     addHandler,
+	})
+
+	commands.addCommand(command{
+		name:        "reset",
+		description: "",
+		handler:     resetHandler,
+	})
+
+	return commands
+}
