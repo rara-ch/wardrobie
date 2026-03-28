@@ -7,6 +7,7 @@ import (
 	"flag"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/rara-ch/wardrobie/internal/database"
 )
 
@@ -72,20 +73,35 @@ func addHandler(s *state, args []string) error {
 }
 
 func getHandler(s *state, args []string) error {
-	items, err := s.db.GetItems(context.Background())
-	if err != nil {
-		return fmt.Errorf("could not get items from database: %s", err)
-	}
+	if len(args) > 0 {
+		// Get Member
+		id, err := uuid.Parse(args[0])
+		if err != nil {
+			return fmt.Errorf("could not parse id: %s", err)
+		}
 
-	if len(items) == 0 {
-		fmt.Println("There are no items")
-	}
+		item, err := s.db.GetItemsByID(context.Background(), id)
+		if err != nil {
+			return fmt.Errorf("could not get item from database: %s", err)
+		}
 
-	for _, item := range items {
-		fmt.Println("===========================================================================")
 		printDatabaseItem(item)
-	}
+	} else {
+		// Get Collection
+		items, err := s.db.GetItems(context.Background())
+		if err != nil {
+			return fmt.Errorf("could not get items from database: %s", err)
+		}
 
+		if len(items) == 0 {
+			fmt.Println("There are no items")
+		}
+
+		for _, item := range items {
+			fmt.Println("===========================================================================")
+			printDatabaseItem(item)
+		}
+	}
 	return nil
 }
 

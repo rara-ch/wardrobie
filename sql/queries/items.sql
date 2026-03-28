@@ -15,7 +15,7 @@ RETURNING *;
 -- name: GetItems :many
 SELECT * FROM items;
 
--- name: GetItemsByID :one
+-- name: GetItemByID :one
 SELECT *
 FROM items
 WHERE id = $1;
