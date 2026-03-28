@@ -80,7 +80,7 @@ func getHandler(s *state, args []string) error {
 			return fmt.Errorf("could not parse id: %s", err)
 		}
 
-		item, err := s.db.GetItemsByID(context.Background(), id)
+		item, err := s.db.GetItemByID(context.Background(), id)
 		if err != nil {
 			return fmt.Errorf("could not get item from database: %s", err)
 		}
