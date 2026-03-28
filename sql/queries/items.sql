@@ -12,7 +12,7 @@ VALUES (
 )
 RETURNING *;
 
--- name: ReadItems :many
+-- name: GetItems :many
 SELECT * FROM items;
 
 -- name: GetItemsByID :one

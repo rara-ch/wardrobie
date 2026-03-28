@@ -72,7 +72,7 @@ func addHandler(s *state, args []string) error {
 }
 
 func getHandler(s *state, args []string) error {
-	items, err := s.db.ReadItems(context.Background())
+	items, err := s.db.GetItems(context.Background())
 	if err != nil {
 		return fmt.Errorf("could not get items from database: %s", err)
 	}

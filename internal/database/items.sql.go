@@ -66,34 +66,12 @@ func (q *Queries) DeleteItems(ctx context.Context) error {
 	return err
 }
 
-const getItemsByID = `-- name: GetItemsByID :one
-SELECT id, created_at, updated_at, color, type, brand, material, category
-FROM items
-WHERE id = $1
-`
-
-func (q *Queries) GetItemsByID(ctx context.Context, id uuid.UUID) (Item, error) {
-	row := q.db.QueryRowContext(ctx, getItemsByID, id)
-	var i Item
-	err := row.Scan(
-		&i.ID,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-		&i.Color,
-		&i.Type,
-		&i.Brand,
-		&i.Material,
-		&i.Category,
-	)
-	return i, err
-}
-
-const readItems = `-- name: ReadItems :many
+const getItems = `-- name: GetItems :many
 SELECT id, created_at, updated_at, color, type, brand, material, category FROM items
 `
 
-func (q *Queries) ReadItems(ctx context.Context) ([]Item, error) {
-	rows, err := q.db.QueryContext(ctx, readItems)
+func (q *Queries) GetItems(ctx context.Context) ([]Item, error) {
+	rows, err := q.db.QueryContext(ctx, getItems)
 	if err != nil {
 		return nil, err
 	}
@@ -122,4 +100,26 @@ func (q *Queries) ReadItems(ctx context.Context) ([]Item, error) {
 		return nil, err
 	}
 	return items, nil
+}
+
+const getItemsByID = `-- name: GetItemsByID :one
+SELECT id, created_at, updated_at, color, type, brand, material, category
+FROM items
+WHERE id = $1
+`
+
+func (q *Queries) GetItemsByID(ctx context.Context, id uuid.UUID) (Item, error) {
+	row := q.db.QueryRowContext(ctx, getItemsByID, id)
+	var i Item
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Color,
+		&i.Type,
+		&i.Brand,
+		&i.Material,
+		&i.Category,
+	)
+	return i, err
 }
