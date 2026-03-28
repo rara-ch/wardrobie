@@ -10,10 +10,40 @@ import (
 	"github.com/rara-ch/wardrobie/internal/database"
 )
 
+type item struct {
+	name     string
+	brand    sql.NullString
+	color    sql.NullString
+	category sql.NullString
+	material sql.NullString
+}
+
 func addHandler(s *state, args []string) error {
-	// TODO: implement tests
-	if len(args) < 1 {
-		return errors.New("not enough arguments")
+	parsedItem, err := parseItem(args)
+	if err != nil {
+		return err
+	}
+
+	createdItem, err := s.db.CreateItem(context.Background(), database.CreateItemParams{
+		Type:     parsedItem.name,
+		Color:    parsedItem.color,
+		Brand:    parsedItem.brand,
+		Material: parsedItem.material,
+		Category: parsedItem.category,
+	})
+	if err != nil {
+		return fmt.Errorf("could not insert item into database: %s", err)
+	}
+
+	fmt.Println("===========================================================================")
+	fmt.Println("Item Inserted Successfully")
+	printDatabaseItem(createdItem)
+	return nil
+}
+
+func parseItem(args []string) (item, error) {
+	if string(args[0][0]) == "-" {
+		return item{}, errors.New("a flag should not come directly after command")
 	}
 
 	itemFlags := flag.NewFlagSet("item", flag.ExitOnError)
@@ -28,27 +58,22 @@ func addHandler(s *state, args []string) error {
 	isMaterialValid := isEmpty(*material)
 	isCategoryValid := isEmpty(*category)
 
-	item, err := s.db.CreateItem(context.Background(), database.CreateItemParams{
-		Type:     args[0],
-		Color:    sql.NullString{String: *color, Valid: isColorValid},
-		Brand:    sql.NullString{String: *brand, Valid: isBrandValid},
-		Material: sql.NullString{String: *material, Valid: isMaterialValid},
-		Category: sql.NullString{String: *category, Valid: isCategoryValid},
-	})
-	if err != nil {
-		return fmt.Errorf("could not insert item into database: %s", err)
-	}
+	return item{
+		name:     args[0],
+		color:    sql.NullString{String: *color, Valid: isColorValid},
+		brand:    sql.NullString{String: *brand, Valid: isBrandValid},
+		material: sql.NullString{String: *material, Valid: isMaterialValid},
+		category: sql.NullString{String: *category, Valid: isCategoryValid},
+	}, nil
+}
 
-	fmt.Println("===========================================================================")
-	fmt.Println("Item Inserted Successfully")
+func printDatabaseItem(item database.Item) {
 	fmt.Printf("Created At: %s\n", item.CreatedAt.Format("2006-01-02T15:04:05 -070000"))
 	fmt.Printf("Type: %s\n", item.Type)
 	printNullString("Brand", item.Brand)
 	printNullString("Color", item.Color)
 	printNullString("Material", item.Material)
 	printNullString("Category", item.Category)
-
-	return nil
 }
 
 func isEmpty(s string) bool {
