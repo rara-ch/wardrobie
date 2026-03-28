@@ -90,6 +90,7 @@ func getHandler(s *state, args []string) error {
 }
 
 func printDatabaseItem(item database.Item) {
+	fmt.Printf("ID: %s\n", item.ID)
 	fmt.Printf("Created At: %s\n", item.CreatedAt.Format("2006-01-02 15:04:05"))
 	fmt.Printf("Updated At: %s\n", item.CreatedAt.Format("2006-01-02 15:04:05"))
 	fmt.Printf("Type: %s\n", item.Type)
