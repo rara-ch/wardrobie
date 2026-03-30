@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"flag"
 	"fmt"
+
+	flag "github.com/spf13/pflag"
 
 	"github.com/google/uuid"
 	"github.com/rara-ch/wardrobie/internal/database"
@@ -29,9 +30,9 @@ func parseItem(args []string) (item, error) {
 	}
 
 	itemFlags := flag.NewFlagSet("item", flag.ExitOnError)
-	brand := itemFlags.String("brand", "", "sets the brand of the item")
-	color := itemFlags.String("color", "", "sets the color of the item")
-	material := itemFlags.String("material", "", "sets the material of the item")
+	brand := itemFlags.StringP("brand", "b", "", "sets the brand of the item")
+	color := itemFlags.StringP("color", "c", "", "sets the color of the item")
+	material := itemFlags.StringP("material", "m", "", "sets the material of the item")
 	category := itemFlags.String("category", "", "sets the category of the item")
 	itemFlags.Parse(args[1:])
 
