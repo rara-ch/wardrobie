@@ -1,9 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"database/sql"
 	"fmt"
+	"os"
+	"strings"
 
 	flag "github.com/spf13/pflag"
 
@@ -35,8 +38,22 @@ func parseItem(args []string) (item, error) {
 	isMaterialValid := isEmpty(*material)
 	isCategoryValid := isEmpty(*category)
 
+	var name string
+
+	if len(itemFlags.Args()) == 0 {
+		fmt.Print("Please enter a unique name for this clothing item:\n> ")
+		reader := bufio.NewReader(os.Stdin)
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			return item{}, fmt.Errorf("could not read input for name: %s", err)
+		}
+		name = strings.TrimSpace(input)
+	} else {
+		name = itemFlags.Arg(0)
+	}
+
 	return item{
-		name:     itemFlags.Arg(0),
+		name:     name,
 		apparel:  sql.NullString{String: *apparel, Valid: isApparelValid},
 		color:    sql.NullString{String: *color, Valid: isColorValid},
 		brand:    sql.NullString{String: *brand, Valid: isBrandValid},
