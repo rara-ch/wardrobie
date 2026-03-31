@@ -15,7 +15,7 @@ func TestParseItem(t *testing.T) {
 
 	tests := []test{
 		{
-			input: []string{"hoodie", "-color", "red", "-brand", "Nike"},
+			input: []string{"-a", "hoodie", "-color", "red", "-brand", "Nike"},
 			want: item{
 				name:  "hoodie",
 				color: sql.NullString{String: "red", Valid: true},
@@ -29,7 +29,7 @@ func TestParseItem(t *testing.T) {
 		},
 		{
 			input: []string{
-				"socks",
+				"-a", "socks",
 			},
 			want: item{
 				name: "socks",
@@ -45,7 +45,7 @@ func TestParseItem(t *testing.T) {
 			expectErr: true,
 		},
 		{
-			input: []string{"underwear", "-brand", "Nike", "-color", "blue", "-material", "cotton", "-category", "sports"},
+			input: []string{"--apparel", "underwear", "-brand", "Nike", "-color", "blue", "-material", "cotton", "-category", "sports"},
 			want: item{
 				name:     "underwear",
 				brand:    sql.NullString{String: "Nike", Valid: true},

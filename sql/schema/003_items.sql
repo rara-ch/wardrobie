@@ -1,0 +1,11 @@
+-- +goose Up
+ALTER TABLE items
+ADD COLUMN apparel VARCHAR(100),
+DROP COLUMN type,
+ADD COLUMN name VARCHAR(100) UNIQUE NOT NULL;
+
+-- +goose Down
+ALTER TABLE items
+DROP COLUMN apparel,
+DROP COLUMN name,
+ADD COLUMN type VARCHAR NOT NULL;

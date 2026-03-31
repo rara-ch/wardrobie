@@ -13,7 +13,7 @@ import (
 )
 
 const createItem = `-- name: CreateItem :one
-INSERT INTO items (id, created_at, updated_at, type, color, brand, material, category)
+INSERT INTO items (id, created_at, updated_at, name, apparel, color, brand, material, category)
 VALUES (
     gen_random_uuid(),
     now(),
@@ -22,13 +22,15 @@ VALUES (
     $2,
     $3,
     $4,
-    $5
+    $5,
+    $6
 )
-RETURNING id, created_at, updated_at, color, type, brand, material, category
+RETURNING id, created_at, updated_at, color, brand, material, category, apparel, name
 `
 
 type CreateItemParams struct {
-	Type     string
+	Name     string
+	Apparel  sql.NullString
 	Color    sql.NullString
 	Brand    sql.NullString
 	Material sql.NullString
@@ -37,7 +39,8 @@ type CreateItemParams struct {
 
 func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (Item, error) {
 	row := q.db.QueryRowContext(ctx, createItem,
-		arg.Type,
+		arg.Name,
+		arg.Apparel,
 		arg.Color,
 		arg.Brand,
 		arg.Material,
@@ -49,10 +52,11 @@ func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (Item, e
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Color,
-		&i.Type,
 		&i.Brand,
 		&i.Material,
 		&i.Category,
+		&i.Apparel,
+		&i.Name,
 	)
 	return i, err
 }
@@ -67,7 +71,7 @@ func (q *Queries) DeleteItems(ctx context.Context) error {
 }
 
 const getItemByID = `-- name: GetItemByID :one
-SELECT id, created_at, updated_at, color, type, brand, material, category
+SELECT id, created_at, updated_at, color, brand, material, category, apparel, name
 FROM items
 WHERE id = $1
 `
@@ -80,16 +84,17 @@ func (q *Queries) GetItemByID(ctx context.Context, id uuid.UUID) (Item, error) {
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Color,
-		&i.Type,
 		&i.Brand,
 		&i.Material,
 		&i.Category,
+		&i.Apparel,
+		&i.Name,
 	)
 	return i, err
 }
 
 const getItems = `-- name: GetItems :many
-SELECT id, created_at, updated_at, color, type, brand, material, category FROM items
+SELECT id, created_at, updated_at, color, brand, material, category, apparel, name FROM items
 `
 
 func (q *Queries) GetItems(ctx context.Context) ([]Item, error) {
@@ -106,10 +111,11 @@ func (q *Queries) GetItems(ctx context.Context) ([]Item, error) {
 			&i.CreatedAt,
 			&i.UpdatedAt,
 			&i.Color,
-			&i.Type,
 			&i.Brand,
 			&i.Material,
 			&i.Category,
+			&i.Apparel,
+			&i.Name,
 		); err != nil {
 			return nil, err
 		}
@@ -128,18 +134,20 @@ const updateItem = `-- name: UpdateItem :one
 UPDATE items
 SET
     updated_at = now(),
-    type = COALESCE($2, type),
-    color = COALESCE($3, color),
-    brand = COALESCE($4, brand),
-    material = COALESCE($5, material),
-    category = COALESCE($6, category)
+    name = COALESCE($2, name),
+    apparel = COALESCE($3, apparel),
+    color = COALESCE($4, color),
+    brand = COALESCE($5, brand),
+    material = COALESCE($6, material),
+    category = COALESCE($7, category)
 WHERE id = $1
-RETURNING id, created_at, updated_at, color, type, brand, material, category
+RETURNING id, created_at, updated_at, color, brand, material, category, apparel, name
 `
 
 type UpdateItemParams struct {
 	ID       uuid.UUID
-	Type     string
+	Name     string
+	Apparel  sql.NullString
 	Color    sql.NullString
 	Brand    sql.NullString
 	Material sql.NullString
@@ -149,7 +157,8 @@ type UpdateItemParams struct {
 func (q *Queries) UpdateItem(ctx context.Context, arg UpdateItemParams) (Item, error) {
 	row := q.db.QueryRowContext(ctx, updateItem,
 		arg.ID,
-		arg.Type,
+		arg.Name,
+		arg.Apparel,
 		arg.Color,
 		arg.Brand,
 		arg.Material,
@@ -161,10 +170,11 @@ func (q *Queries) UpdateItem(ctx context.Context, arg UpdateItemParams) (Item, e
 		&i.CreatedAt,
 		&i.UpdatedAt,
 		&i.Color,
-		&i.Type,
 		&i.Brand,
 		&i.Material,
 		&i.Category,
+		&i.Apparel,
+		&i.Name,
 	)
 	return i, err
 }

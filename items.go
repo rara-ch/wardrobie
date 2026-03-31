@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"database/sql"
-	"errors"
 	"fmt"
 
 	flag "github.com/spf13/pflag"
@@ -14,6 +13,7 @@ import (
 
 type item struct {
 	name     string
+	apparel  sql.NullString
 	brand    sql.NullString
 	color    sql.NullString
 	category sql.NullString
@@ -21,28 +21,23 @@ type item struct {
 }
 
 func parseItem(args []string) (item, error) {
-	if len(args) == 0 {
-		return item{}, errors.New("there was no argument passed after command")
-	}
-
-	if string(args[0][0]) == "-" {
-		return item{}, errors.New("a flag should not come directly after command")
-	}
-
 	itemFlags := flag.NewFlagSet("item", flag.ExitOnError)
+	apparel := itemFlags.StringP("apparel", "a", "", "sets the apparel (type) of the item")
 	brand := itemFlags.StringP("brand", "b", "", "sets the brand of the item")
 	color := itemFlags.StringP("color", "c", "", "sets the color of the item")
 	material := itemFlags.StringP("material", "m", "", "sets the material of the item")
 	category := itemFlags.String("category", "", "sets the category of the item")
-	itemFlags.Parse(args[1:])
+	itemFlags.Parse(args)
 
+	isApparelValid := isEmpty(*apparel)
 	isBrandValid := isEmpty(*brand)
 	isColorValid := isEmpty(*color)
 	isMaterialValid := isEmpty(*material)
 	isCategoryValid := isEmpty(*category)
 
 	return item{
-		name:     args[0],
+		name:     itemFlags.Arg(0),
+		apparel:  sql.NullString{String: *apparel, Valid: isApparelValid},
 		color:    sql.NullString{String: *color, Valid: isColorValid},
 		brand:    sql.NullString{String: *brand, Valid: isBrandValid},
 		material: sql.NullString{String: *material, Valid: isMaterialValid},
@@ -57,7 +52,8 @@ func addHandler(s *state, args []string) error {
 	}
 
 	createdItem, err := s.db.CreateItem(context.Background(), database.CreateItemParams{
-		Type:     parsedItem.name,
+		Name:     parsedItem.name,
+		Apparel:  parsedItem.apparel,
 		Color:    parsedItem.color,
 		Brand:    parsedItem.brand,
 		Material: parsedItem.material,
@@ -110,7 +106,8 @@ func printDatabaseItem(item database.Item) {
 	fmt.Printf("ID: %s\n", item.ID)
 	fmt.Printf("Created At: %s\n", item.CreatedAt.Format("2006-01-02 15:04:05"))
 	fmt.Printf("Updated At: %s\n", item.CreatedAt.Format("2006-01-02 15:04:05"))
-	fmt.Printf("Type: %s\n", item.Type)
+	fmt.Printf("Name: %s\n", item.Name)
+	printNullString("Apparel", item.Apparel)
 	printNullString("Brand", item.Brand)
 	printNullString("Color", item.Color)
 	printNullString("Material", item.Material)
