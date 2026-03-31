@@ -10,7 +10,6 @@ import (
 
 	flag "github.com/spf13/pflag"
 
-	"github.com/google/uuid"
 	"github.com/rara-ch/wardrobie/internal/database"
 )
 
@@ -88,13 +87,7 @@ func addHandler(s *state, args []string) error {
 
 func getHandler(s *state, args []string) error {
 	if len(args) > 0 {
-		// Get Member
-		id, err := uuid.Parse(args[0])
-		if err != nil {
-			return fmt.Errorf("could not parse id: %s", err)
-		}
-
-		item, err := s.db.GetItemByID(context.Background(), id)
+		item, err := s.db.GetItemByName(context.Background(), args[0])
 		if err != nil {
 			return fmt.Errorf("could not get item from database: %s", err)
 		}

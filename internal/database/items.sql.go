@@ -8,8 +8,6 @@ package database
 import (
 	"context"
 	"database/sql"
-
-	"github.com/google/uuid"
 )
 
 const createItem = `-- name: CreateItem :one
@@ -70,14 +68,14 @@ func (q *Queries) DeleteItems(ctx context.Context) error {
 	return err
 }
 
-const getItemByID = `-- name: GetItemByID :one
+const getItemByName = `-- name: GetItemByName :one
 SELECT id, created_at, updated_at, color, brand, material, category, apparel, name
 FROM items
-WHERE id = $1
+WHERE name = $1
 `
 
-func (q *Queries) GetItemByID(ctx context.Context, id uuid.UUID) (Item, error) {
-	row := q.db.QueryRowContext(ctx, getItemByID, id)
+func (q *Queries) GetItemByName(ctx context.Context, name string) (Item, error) {
+	row := q.db.QueryRowContext(ctx, getItemByName, name)
 	var i Item
 	err := row.Scan(
 		&i.ID,
@@ -140,13 +138,13 @@ SET
     brand = COALESCE($5, brand),
     material = COALESCE($6, material),
     category = COALESCE($7, category)
-WHERE id = $1
+WHERE name = $1
 RETURNING id, created_at, updated_at, color, brand, material, category, apparel, name
 `
 
 type UpdateItemParams struct {
-	ID       uuid.UUID
 	Name     string
+	Name_2   string
 	Apparel  sql.NullString
 	Color    sql.NullString
 	Brand    sql.NullString
@@ -156,8 +154,8 @@ type UpdateItemParams struct {
 
 func (q *Queries) UpdateItem(ctx context.Context, arg UpdateItemParams) (Item, error) {
 	row := q.db.QueryRowContext(ctx, updateItem,
-		arg.ID,
 		arg.Name,
+		arg.Name_2,
 		arg.Apparel,
 		arg.Color,
 		arg.Brand,

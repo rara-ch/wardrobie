@@ -16,10 +16,10 @@ RETURNING *;
 -- name: GetItems :many
 SELECT * FROM items;
 
--- name: GetItemByID :one
+-- name: GetItemByName :one
 SELECT *
 FROM items
-WHERE id = $1;
+WHERE name = $1;
 
 -- name: UpdateItem :one
 UPDATE items
@@ -31,7 +31,7 @@ SET
     brand = COALESCE($5, brand),
     material = COALESCE($6, material),
     category = COALESCE($7, category)
-WHERE id = $1
+WHERE name = $1
 RETURNING *;
 
 -- name: DeleteItems :exec
