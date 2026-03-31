@@ -22,7 +22,16 @@ type item struct {
 	material sql.NullString
 }
 
-func parseItem(args []string) (item, error) {
+func isNameUnqiue(name string, items []database.Item) bool {
+	for _, item := range items {
+		if item.Name == name {
+			return false
+		}
+	}
+	return true
+}
+
+func parseItem(s *state, args []string) (item, error) {
 	itemFlags := flag.NewFlagSet("item", flag.ExitOnError)
 	apparel := itemFlags.StringP("apparel", "a", "", "sets the apparel (type) of the item")
 	brand := itemFlags.StringP("brand", "b", "", "sets the brand of the item")
@@ -37,16 +46,23 @@ func parseItem(args []string) (item, error) {
 	isMaterialValid := isEmpty(*material)
 	isCategoryValid := isEmpty(*category)
 
+	items, err := s.db.GetItems(context.Background())
+	if err != nil {
+		return item{}, fmt.Errorf("could not get items from database to check uniqueness of name")
+	}
+
 	var name string
 
-	if len(itemFlags.Args()) == 0 {
-		fmt.Print("Please enter a unique name for this clothing item:\n> ")
-		reader := bufio.NewReader(os.Stdin)
-		input, err := reader.ReadString('\n')
-		if err != nil {
-			return item{}, fmt.Errorf("could not read input for name: %s", err)
+	if len(itemFlags.Args()) == 0 || !isNameUnqiue(itemFlags.Arg(0), items) {
+		for !isNameUnqiue(name, items) {
+			fmt.Print("Please enter a unique name for this clothing item:\n> ")
+			reader := bufio.NewReader(os.Stdin)
+			input, err := reader.ReadString('\n')
+			if err != nil {
+				return item{}, fmt.Errorf("could not read input for name: %s", err)
+			}
+			name = strings.TrimSpace(input)
 		}
-		name = strings.TrimSpace(input)
 	} else {
 		name = itemFlags.Arg(0)
 	}
@@ -62,7 +78,7 @@ func parseItem(args []string) (item, error) {
 }
 
 func addHandler(s *state, args []string) error {
-	parsedItem, err := parseItem(args)
+	parsedItem, err := parseItem(s, args)
 	if err != nil {
 		return err
 	}
