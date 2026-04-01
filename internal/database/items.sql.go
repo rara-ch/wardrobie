@@ -155,19 +155,17 @@ const updateItem = `-- name: UpdateItem :one
 UPDATE items
 SET
     updated_at = now(),
-    name = COALESCE($2, name),
-    apparel = COALESCE($3, apparel),
-    color = COALESCE($4, color),
-    brand = COALESCE($5, brand),
-    material = COALESCE($6, material),
-    category = COALESCE($7, category)
+    apparel = COALESCE($2, apparel),
+    color = COALESCE($3, color),
+    brand = COALESCE($4, brand),
+    material = COALESCE($5, material),
+    category = COALESCE($6, category)
 WHERE name = $1
 RETURNING id, created_at, updated_at, color, brand, material, category, apparel, name
 `
 
 type UpdateItemParams struct {
 	Name     string
-	Name_2   string
 	Apparel  sql.NullString
 	Color    sql.NullString
 	Brand    sql.NullString
@@ -178,7 +176,6 @@ type UpdateItemParams struct {
 func (q *Queries) UpdateItem(ctx context.Context, arg UpdateItemParams) (Item, error) {
 	row := q.db.QueryRowContext(ctx, updateItem,
 		arg.Name,
-		arg.Name_2,
 		arg.Apparel,
 		arg.Color,
 		arg.Brand,

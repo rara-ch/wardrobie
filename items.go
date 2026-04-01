@@ -1,7 +1,5 @@
 package main
 
-// Right now I am trying to implement a delete command and refactoring to reuse code
-
 import (
 	"bufio"
 	"context"
@@ -67,7 +65,7 @@ func getUniqueName(s *state, f isName) (string, error) {
 	return name, nil
 }
 
-func parseItem(s *state, args []string) (item, error) {
+func parseItem(s *state, args []string, f isName) (item, error) {
 	itemFlags := flag.NewFlagSet("item", flag.ExitOnError)
 	apparel := itemFlags.StringP("apparel", "a", "", "sets the apparel (type) of the item")
 	brand := itemFlags.StringP("brand", "b", "", "sets the brand of the item")
@@ -89,8 +87,8 @@ func parseItem(s *state, args []string) (item, error) {
 
 	var name string
 
-	if len(itemFlags.Args()) == 0 || !isNameInDB(itemFlags.Arg(0), items) {
-		name, err = getUniqueName(s, isNameNotInDB)
+	if len(itemFlags.Args()) == 0 || f(itemFlags.Arg(0), items) {
+		name, err = getUniqueName(s, f)
 		if err != nil {
 			return item{}, fmt.Errorf("could not get unique name: %s", err)
 		}
@@ -109,7 +107,7 @@ func parseItem(s *state, args []string) (item, error) {
 }
 
 func addHandler(s *state, args []string) error {
-	parsedItem, err := parseItem(s, args)
+	parsedItem, err := parseItem(s, args, isNameNotInDB)
 	if err != nil {
 		return err
 	}
@@ -156,6 +154,30 @@ func getHandler(s *state, args []string) error {
 			printDatabaseItem(item)
 		}
 	}
+	return nil
+}
+
+func updateHandler(s *state, args []string) error {
+	item, err := parseItem(s, args, isNameInDB)
+	if err != nil {
+		return fmt.Errorf("could not parse item: %s", err)
+	}
+
+	updatedItem, err := s.db.UpdateItem(context.Background(), database.UpdateItemParams{
+		Name:     item.name,
+		Apparel:  item.apparel,
+		Color:    item.color,
+		Brand:    item.brand,
+		Material: item.material,
+		Category: item.category,
+	})
+	if err != nil {
+		return fmt.Errorf("could not update item in database: %s", err)
+	}
+
+	fmt.Println("Item updated")
+	printDatabaseItem(updatedItem)
+
 	return nil
 }
 

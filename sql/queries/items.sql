@@ -25,12 +25,11 @@ WHERE name = $1;
 UPDATE items
 SET
     updated_at = now(),
-    name = COALESCE($2, name),
-    apparel = COALESCE($3, apparel),
-    color = COALESCE($4, color),
-    brand = COALESCE($5, brand),
-    material = COALESCE($6, material),
-    category = COALESCE($7, category)
+    apparel = COALESCE($2, apparel),
+    color = COALESCE($3, color),
+    brand = COALESCE($4, brand),
+    material = COALESCE($5, material),
+    category = COALESCE($6, category)
 WHERE name = $1
 RETURNING *;
 

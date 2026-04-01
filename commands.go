@@ -18,21 +18,27 @@ func buildCommands() commands {
 	commands := commands{}
 
 	commands.addCommand(command{
-		name:        "add",
-		description: "",
-		handler:     addHandler,
-	})
-
-	commands.addCommand(command{
 		name:        "reset",
 		description: "",
 		handler:     resetHandler,
 	})
 
 	commands.addCommand(command{
+		name:        "add",
+		description: "",
+		handler:     addHandler,
+	})
+
+	commands.addCommand(command{
 		name:        "get",
 		description: "",
 		handler:     getHandler,
+	})
+
+	commands.addCommand(command{
+		name:        "update",
+		description: "",
+		handler:     updateHandler,
 	})
 
 	commands.addCommand(command{
