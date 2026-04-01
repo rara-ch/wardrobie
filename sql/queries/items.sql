@@ -36,3 +36,8 @@ RETURNING *;
 
 -- name: DeleteItems :exec
 DELETE FROM items;
+
+-- name: DeleteItemByName :one
+DELETE FROM items
+WHERE name = $1
+RETURNING *;

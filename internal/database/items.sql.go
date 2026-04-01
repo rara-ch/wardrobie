@@ -59,6 +59,29 @@ func (q *Queries) CreateItem(ctx context.Context, arg CreateItemParams) (Item, e
 	return i, err
 }
 
+const deleteItemByName = `-- name: DeleteItemByName :one
+DELETE FROM items
+WHERE name = $1
+RETURNING id, created_at, updated_at, color, brand, material, category, apparel, name
+`
+
+func (q *Queries) DeleteItemByName(ctx context.Context, name string) (Item, error) {
+	row := q.db.QueryRowContext(ctx, deleteItemByName, name)
+	var i Item
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Color,
+		&i.Brand,
+		&i.Material,
+		&i.Category,
+		&i.Apparel,
+		&i.Name,
+	)
+	return i, err
+}
+
 const deleteItems = `-- name: DeleteItems :exec
 DELETE FROM items
 `

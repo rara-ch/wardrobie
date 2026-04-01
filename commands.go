@@ -35,5 +35,11 @@ func buildCommands() commands {
 		handler:     getHandler,
 	})
 
+	commands.addCommand(command{
+		name:        "delete",
+		description: "",
+		handler:     deleteHandler,
+	})
+
 	return commands
 }

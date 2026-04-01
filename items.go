@@ -1,5 +1,7 @@
 package main
 
+// Right now I am trying to implement a delete command and refactoring to reuse code
+
 import (
 	"bufio"
 	"context"
@@ -22,13 +24,47 @@ type item struct {
 	material sql.NullString
 }
 
-func isNameUnqiue(name string, items []database.Item) bool {
+type isName func(name string, item []database.Item) bool
+
+func isNameInDB(name string, items []database.Item) bool {
 	for _, item := range items {
 		if item.Name == name {
 			return false
 		}
 	}
 	return true
+}
+
+func isNameNotInDB(name string, items []database.Item) bool {
+	for _, item := range items {
+		if item.Name == name {
+			return true
+		}
+	}
+	return false
+}
+
+func getUniqueName(s *state, f isName) (string, error) {
+	items, err := s.db.GetItems(context.Background())
+	if err != nil {
+		return "", fmt.Errorf("could not get items from database: %s", err)
+	}
+
+	var name string
+
+	for f(name, items) {
+		fmt.Print("Please enter the unique name for this clothing item:\n> ")
+		reader := bufio.NewReader(os.Stdin)
+		input, err := reader.ReadString('\n')
+		if err != nil {
+			return "", fmt.Errorf("could not read input for name: %s", err)
+		}
+		name = strings.TrimSpace(input)
+		if name == "exit" {
+			os.Exit(0)
+		}
+	}
+	return name, nil
 }
 
 func parseItem(s *state, args []string) (item, error) {
@@ -53,15 +89,10 @@ func parseItem(s *state, args []string) (item, error) {
 
 	var name string
 
-	if len(itemFlags.Args()) == 0 || !isNameUnqiue(itemFlags.Arg(0), items) {
-		for !isNameUnqiue(name, items) {
-			fmt.Print("Please enter a unique name for this clothing item:\n> ")
-			reader := bufio.NewReader(os.Stdin)
-			input, err := reader.ReadString('\n')
-			if err != nil {
-				return item{}, fmt.Errorf("could not read input for name: %s", err)
-			}
-			name = strings.TrimSpace(input)
+	if len(itemFlags.Args()) == 0 || !isNameInDB(itemFlags.Arg(0), items) {
+		name, err = getUniqueName(s, isNameNotInDB)
+		if err != nil {
+			return item{}, fmt.Errorf("could not get unique name: %s", err)
 		}
 	} else {
 		name = itemFlags.Arg(0)
@@ -125,6 +156,30 @@ func getHandler(s *state, args []string) error {
 			printDatabaseItem(item)
 		}
 	}
+	return nil
+}
+
+func deleteHandler(s *state, args []string) error {
+	var name string
+	var err error
+
+	if len(args) == 0 {
+		name, err = getUniqueName(s, isNameInDB)
+		if err != nil {
+			return fmt.Errorf("could not get unique name: %s", err)
+		}
+	} else {
+		name = args[0]
+	}
+
+	item, err := s.db.DeleteItemByName(context.Background(), name)
+	if err != nil {
+		return fmt.Errorf("could not delete item from database: %s", err)
+	}
+
+	fmt.Println("Deleted item")
+	printDatabaseItem(item)
+
 	return nil
 }
 
