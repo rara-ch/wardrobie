@@ -2,11 +2,11 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	ai "wardrobie/internal/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -14,7 +14,7 @@ import (
 )
 
 type state struct {
-	gemini *genai.Client
+	aiService *ai.AiService
 }
 
 func main() {
@@ -24,7 +24,7 @@ func main() {
 	}
 
 	context := context.Background()
-	gemini, err := genai.NewClient(context, &genai.ClientConfig{
+	geminiClient, err := genai.NewClient(context, &genai.ClientConfig{
 		APIKey: os.Getenv("GEMINI_API_KEY"),
 	})
 	if err != nil {
@@ -32,7 +32,7 @@ func main() {
 	}
 
 	state := &state{
-		gemini: gemini,
+		aiService: ai.NewService(geminiClient),
 	}
 
 	router := gin.Default()
@@ -57,25 +57,7 @@ func (state *state) postClothingImage(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 	}
 
-	bytes, err := os.ReadFile(fmt.Sprintf("../uploads/%s", file.Filename))
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	}
+	analysis, err := state.aiService.AnalyseImage(destination)
 
-	parts := []*genai.Part{
-		genai.NewPartFromBytes(bytes, "image/jpg"),
-		genai.NewPartFromText("Describe this image"),
-	}
-
-	result, err := state.gemini.Models.GenerateContent(
-		context.Background(),
-		"gemini-3.5-flash",
-		[]*genai.Content{genai.NewContentFromParts(parts, genai.RoleUser)},
-		nil,
-	)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
-	}
-
-	c.JSON(http.StatusOK, gin.H{"analysis": result.Text()})
+	c.JSON(http.StatusOK, gin.H{"analysis": analysis})
 }
